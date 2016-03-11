@@ -70,6 +70,7 @@ public class LauncherAppWidgetHostView extends AppWidgetHostView implements Touc
        return false;
     }
 
+
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         // Just in case the previous long press hasn't been cleared, we make sure to start fresh
         // on touch down.

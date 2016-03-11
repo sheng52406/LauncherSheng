@@ -173,6 +173,7 @@ public class AutoInstallsLayout {
             if (type != XmlPullParser.START_TAG) {
                 continue;
             }
+            Log.d("test--","type: "+parser.getName());
             count += parseAndAddNode(parser, tagParserMap, screenIds);
         }
         return count;

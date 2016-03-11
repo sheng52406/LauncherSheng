@@ -1013,19 +1013,20 @@ public class Workspace extends SmoothPagedView
             layout = mLauncher.getHotseat().getLayout();
             child.setOnKeyListener(new HotseatIconKeyEventListener());
 
-            // Hide folder title in the hotseat
+            //如果Hotseat里面有Folder，隐藏文件夹名字
             if (child instanceof FolderIcon) {
                 ((FolderIcon) child).setTextVisible(false);
             }
 
             if (computeXYFromRank) {
+                //获取child的位置，返回true添加成功，false失败
                 x = mLauncher.getHotseat().getCellXFromOrder((int) screenId);
                 y = mLauncher.getHotseat().getCellYFromOrder((int) screenId);
             } else {
                 screenId = mLauncher.getHotseat().getOrderInHotseat(x, y);
             }
         } else {
-            // Show folder title if not in the hotseat
+            // 显示文件夹名字
             if (child instanceof FolderIcon) {
                 ((FolderIcon) child).setTextVisible(true);
             }

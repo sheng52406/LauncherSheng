@@ -142,10 +142,10 @@ public class Hotseat extends FrameLayout {
         mContent.removeAllViewsInLayout();
 
         if (!LauncherAppState.isDisableAllApps()) {
-            // Add the Apps button
             Context context = getContext();
 
             LayoutInflater inflater = LayoutInflater.from(context);
+            //添加AllAPP按钮，也是一个BubbleTextView对象
             TextView allAppsButton = (TextView)
                     inflater.inflate(R.layout.all_apps_button, mContent, false);
             Drawable d = context.getResources().getDrawable(R.drawable.all_apps_button_icon);
@@ -155,6 +155,7 @@ public class Hotseat extends FrameLayout {
 
             allAppsButton.setContentDescription(context.getString(R.string.all_apps_button_label));
             allAppsButton.setOnKeyListener(new HotseatIconKeyEventListener());
+            //allapp按钮触摸和点击响应，回调Launcher的功能
             if (mLauncher != null) {
                 allAppsButton.setOnTouchListener(mLauncher.getHapticFeedbackTouchListener());
                 mLauncher.setAllAppsButton(allAppsButton);
@@ -162,12 +163,12 @@ public class Hotseat extends FrameLayout {
                 allAppsButton.setOnFocusChangeListener(mLauncher.mFocusHandler);
             }
 
-            // Note: We do this to ensure that the hotseat is always laid out in the orientation of
-            // the hotseat in order regardless of which orientation they were added
+            //这里会判断是小屏幕还是大屏幕，决定AllAPP按钮的位置
             int x = getCellXFromOrder(mAllAppsButtonRank);
             int y = getCellYFromOrder(mAllAppsButtonRank);
             CellLayout.LayoutParams lp = new CellLayout.LayoutParams(x,y,1,1);
             lp.canReorder = false;
+            //Hotseat中清空了装载的内容，然后重新加载allAppsButton到CellLayout
             mContent.addViewToCellLayout(allAppsButton, -1, allAppsButton.getId(), lp, true);
         }
     }

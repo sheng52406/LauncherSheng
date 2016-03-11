@@ -111,7 +111,7 @@ public class LauncherProvider extends ContentProvider {
     @Override
     public String getType(Uri uri) {
         SqlArguments args = new SqlArguments(uri, null, null);
-        if (TextUtils.isEmpty(args.where)) {
+        if (TextUtils.isEmpty(args.where)) {//如果操作的数据属于集合类型
             return "vnd.android.cursor.dir/" + args.table;
         } else {
             return "vnd.android.cursor.item/" + args.table;

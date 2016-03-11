@@ -159,6 +159,7 @@ public class LauncherModel extends BroadcastReceiver
     // sBgWorkspaceItems is passed to bindItems, which expects a list of all folders and shortcuts
     //       created by LauncherModel that are directly on the home screen (however, no widgets or
     //       shortcuts within folders).
+    //保存所有元素的id和ItemInfo组成的映射
     static final ArrayList<ItemInfo> sBgWorkspaceItems = new ArrayList<ItemInfo>();
 
     // sBgAppWidgets is all LauncherAppWidgetInfo created by LauncherModel. Passed to bindAppWidget()
@@ -186,7 +187,23 @@ public class LauncherModel extends BroadcastReceiver
 
     private final LauncherAppsCompat mLauncherApps;
     private final UserManagerCompat mUserManager;
-
+    /**
+     * setLoadOnResume() ：当Launcher.java类的Activity处于onPause的时候，如果重新恢复，需要调用onResume，此时需要在onResume调用这个接口，恢复Launcher数据。
+     * getCurrentWorkspace()：获取屏幕序号
+     * startBinding()：通知Launcher开始加载数据。清空容器数据，重新加载
+     * bindItems(ArrayList<ItemInfo> shortcuts, int start, int end)：加载App shortcut、Live Folder、widget到Launcher相关容器。
+     * bindFolders(HashMap<Long, FolderInfo> folders)：加载folder的内容
+     * finishBindingItems()：数据加载完成。
+     * bindAppWidget(LauncherAppWidgetInfo item)：workspace加载APP 快捷方式
+     * bindAllApplications(final ArrayList<ApplicationInfo> apps)：所有应用列表接着APP图标数据
+     * bindAppsAdded(ArrayList<ApplicationInfo> apps)：通知Launcher新安装了一个APP，更新数据。
+     * bindAppsUpdated(ArrayList<ApplicationInfo> apps)：通知Launcher一个APP更新了。（覆盖安装）
+     * bindAppsRemoved(ArrayList<ApplicationInfo> apps, boolean permanent)：通知Launcher，应用被删除
+     * <p/>
+     * bindPackagesUpdated()：多个应用更新。
+     * isAllAppsVisible()：返回所有应用列表是否可见状态。
+     * bindSearchablesChanged()：Google搜索栏或者删除区域发生变化时通知
+     */
     public interface Callbacks {
         public boolean setLoadOnResume();
         public int getCurrentWorkspaceScreen();
@@ -1618,16 +1635,20 @@ public class LauncherModel extends BroadcastReceiver
 
                 // Whew! Hard work done.  Slow us down, and wait until the UI thread has
                 // settled down.
+                // THREAD_PRIORITY_BACKGROUND设置线程优先级为后台，
+                //这样当多个线程并发后很多无关紧要的线程分配的CPU时间将会减少，有利于主线程的处理
                 synchronized (mLock) {
                     if (mIsLaunching) {
                         if (DEBUG_LOADERS) Log.d(TAG, "Setting thread priority to BACKGROUND");
                         android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                     }
                 }
+                //等待线程空闲的时候，继续加载其他页面数据
                 waitForIdle();
 
                 // second step
                 if (DEBUG_LOADERS) Log.d(TAG, "step 2: loading all apps");
+                //加载剩余页面的数据，包含workspace和all app页面
                 loadAndBindAllApps();
 
                 // Restore the default thread priority after we are done loading items
@@ -1815,7 +1836,7 @@ public class LauncherModel extends BroadcastReceiver
             return true;
         }
 
-        /** Clears all the sBg data structures */
+        /** 清空容器，存放界面不同的元素，App快捷方式、widget、folder */
         private void clearSBgDataStructures() {
             synchronized (sBgLock) {
                 sBgWorkspaceItems.clear();
@@ -2121,7 +2142,7 @@ public class LauncherModel extends BroadcastReceiver
                                         sBgWorkspaceItems.add(info);
                                         break;
                                     default:
-                                        // Item is in a user folder
+                                        // 项目是在用户文件夹中
                                         FolderInfo folderInfo =
                                                 findOrMakeFolder(sBgFolders, container);
                                         folderInfo.add(info);
@@ -2657,7 +2678,7 @@ public class LauncherModel extends BroadcastReceiver
             int currScreen = isLoadingSynchronously ? synchronizeBindPage :
                 oldCallbacks.getCurrentWorkspaceScreen();
             if (currScreen >= orderedScreenIds.size()) {
-                // There may be no workspace screens (just hotseat items and an empty page).
+                // 可能没有工作区屏幕(hotseat项目和一个空白页)。
                 currScreen = PagedView.INVALID_RESTORE_PAGE;
             }
             final int currentScreen = currScreen;
@@ -2668,7 +2689,7 @@ public class LauncherModel extends BroadcastReceiver
             // all the existing workspace items before we call startBinding() below.
             unbindWorkspaceItemsOnMainThread();
 
-            // Separate the items that are on the current screen, and all the other remaining items
+            // 单独分隔当前屏幕的item,和其他剩下的item
             ArrayList<ItemInfo> currentWorkspaceItems = new ArrayList<ItemInfo>();
             ArrayList<ItemInfo> otherWorkspaceItems = new ArrayList<ItemInfo>();
             ArrayList<LauncherAppWidgetInfo> currentAppWidgets =
@@ -2687,7 +2708,7 @@ public class LauncherModel extends BroadcastReceiver
             sortWorkspaceItemsSpatially(currentWorkspaceItems);
             sortWorkspaceItemsSpatially(otherWorkspaceItems);
 
-            // Tell the workspace that we're about to start binding items
+            // 通知Launcher开始绑定数据
             r = new Runnable() {
                 public void run() {
                     Callbacks callbacks = tryGetCallbacks(oldCallbacks);
@@ -2700,7 +2721,7 @@ public class LauncherModel extends BroadcastReceiver
 
             bindWorkspaceScreens(oldCallbacks, orderedScreenIds);
 
-            // Load items on the current page
+            // 加载当前页面的item
             bindWorkspaceItems(oldCallbacks, currentWorkspaceItems, currentAppWidgets,
                     currentFolders, null);
             if (isLoadingSynchronously) {
@@ -2723,7 +2744,7 @@ public class LauncherModel extends BroadcastReceiver
             bindWorkspaceItems(oldCallbacks, otherWorkspaceItems, otherAppWidgets, otherFolders,
                     (isLoadingSynchronously ? mDeferredBindRunnables : null));
 
-            // Tell the workspace that we're done binding items
+            // 加载完成，通知Launcher，已经完成数据加载
             r = new Runnable() {
                 public void run() {
                     Callbacks callbacks = tryGetCallbacks(oldCallbacks);
@@ -2808,13 +2829,13 @@ public class LauncherModel extends BroadcastReceiver
                 Log.w(TAG, "LoaderTask running with no launcher (loadAllApps)");
                 return;
             }
-
+            //过滤需要显示的app
             final Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
             mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
 
             final List<UserHandleCompat> profiles = mUserManager.getUserProfiles();
 
-            // Clear the list of apps
+            // 清除apps的集合
             mBgAllAppsList.clear();
             SharedPreferences prefs = mContext.getSharedPreferences(
                     LauncherAppState.getSharedPreferencesKey(), Context.MODE_PRIVATE);
@@ -2841,10 +2862,10 @@ public class LauncherModel extends BroadcastReceiver
                             + (SystemClock.uptimeMillis()-sortTime) + "ms");
                 }
 
-                // Create the ApplicationInfos
+                // 创建ApplicationInfos
                 for (int i = 0; i < apps.size(); i++) {
                     LauncherActivityInfoCompat app = apps.get(i);
-                    // This builds the icon bitmaps.
+                    // 建立一个icon的bitmap
                     mBgAllAppsList.add(new AppInfo(mContext, app, user, mIconCache, mLabelCache));
                 }
 
@@ -2871,12 +2892,12 @@ public class LauncherModel extends BroadcastReceiver
             final ArrayList<AppInfo> added = mBgAllAppsList.added;
             mBgAllAppsList.added = new ArrayList<AppInfo>();
 
-            // Post callback on main thread
+            // 在主线程后回调
             mHandler.post(new Runnable() {
                 public void run() {
                     final long bindTime = SystemClock.uptimeMillis();
                     final Callbacks callbacks = tryGetCallbacks(oldCallbacks);
-                    if (callbacks != null) {
+                    if (callbacks != null) {//一次性加载所以app，返回数据到launcher
                         callbacks.bindAllApplications(added);
                         if (DEBUG_LOADERS) {
                             Log.d(TAG, "bound " + added.size() + " apps in "
@@ -3292,7 +3313,7 @@ public class LauncherModel extends BroadcastReceiver
         }
     }
 
-    // Returns a list of ResolveInfos/AppWindowInfos in sorted order
+    // 返回一个ResolveInfos / AppWindowInfos排序列表
     public static ArrayList<Object> getSortedWidgetsAndShortcuts(Context context) {
         PackageManager packageManager = context.getPackageManager();
         final ArrayList<Object> widgetsAndShortcuts = new ArrayList<Object>();
