@@ -37,7 +37,7 @@
             android:background="@color/widget_text_panel"
             android:visibility="gone" />
 
-        <!-- The preview of the widget or shortcut. -->
+        <!--小部件或快捷方式的的预览 -->
         <com.android.launcher3.PagedViewWidgetImageView
             android:id="@+id/widget_preview"
             style="@style/PagedViewWidgetImageView"
@@ -93,7 +93,6 @@
             android:layout_marginStart="5dp"
             android:layout_weight="0"
             android:gravity="start"
-
             android:textColor="#FFFFFFFF"
             android:textSize="12sp"
             android:fontFamily="sans-serif-condensed"

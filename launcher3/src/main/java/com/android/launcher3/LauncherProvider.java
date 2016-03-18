@@ -304,12 +304,12 @@ public class LauncherProvider extends ContentProvider {
      *   3) The default configuration for the particular device
      */
     synchronized public void loadDefaultFavoritesIfNecessary() {
+        LogUtils.d("loadDefaultFavoritesIfNecessary");
         String spKey = LauncherAppState.getSharedPreferencesKey();
         SharedPreferences sp = getContext().getSharedPreferences(spKey, Context.MODE_PRIVATE);
 
         if (sp.getBoolean(EMPTY_DATABASE_CREATED, false)) {
-            Log.d(TAG, "loading default workspace");
-
+            LogUtils.d("loadDefaultFavoritesIfNecessary begin start");
             AutoInstallsLayout loader = AutoInstallsLayout.get(getContext(),
                     mOpenHelper.mAppWidgetHost, mOpenHelper);
 
@@ -330,10 +330,10 @@ public class LauncherProvider extends ContentProvider {
             if (loader == null) {
                 loader = getDefaultLayoutParser();
             }
-            // Populate favorites table with initial favorites
+            // 填充favorite表
             if ((mOpenHelper.loadFavorites(mOpenHelper.getWritableDatabase(), loader) <= 0)
                     && usingExternallyProvidedLayout) {
-                // Unable to load external layout. Cleanup and load the internal layout.
+                // 无法加载外部布局。清理和加载的内部布局。
                 createEmptyDB();
                 mOpenHelper.loadFavorites(mOpenHelper.getWritableDatabase(),
                         getDefaultLayoutParser());

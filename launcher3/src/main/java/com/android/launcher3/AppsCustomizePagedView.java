@@ -1104,7 +1104,7 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
 
         final PagedViewGridLayout layout = (PagedViewGridLayout) getPageAt(page);
 
-        // Calculate the dimensions of each cell we are giving to each widget
+        //计算Widget相关的长宽和边距，用于后面确定位置
         final ArrayList<Object> items = new ArrayList<Object>();
         int contentWidth = mContentWidth - layout.getPaddingLeft() - layout.getPaddingRight();
         final int cellWidth = contentWidth / mWidgetCountX;
@@ -1112,13 +1112,13 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
 
         final int cellHeight = contentHeight / mWidgetCountY;
 
-        // Prepare the set of widgets to load previews for in the background
+        // 这里是计算Widget的数目和每页数目，用于后面计算WIdget的预览图
         int offset = page * numItemsPerPage;
         for (int i = offset; i < Math.min(offset + numItemsPerPage, mWidgets.size()); ++i) {
             items.add(mWidgets.get(i));
         }
 
-        // Prepopulate the pages with the other widget info, and fill in the previews later
+        //获取Widget信息，填充到PagedViewWidget对象里面
         layout.setColumnCount(layout.getCellCountX());
         for (int i = 0; i < items.size(); ++i) {
             Object rawInfo = items.get(i);

@@ -457,12 +457,11 @@ public class Launcher extends Activity
         //加载启动数据，所有界面数据（快捷方式、folder、widget、allApp）等在loader里面加载
         if (!mRestoring) {
             if (DISABLE_SYNCHRONOUS_BINDING_CURRENT_PAGE) {
-                // If the user leaves launcher, then we should just load items asynchronously when
-                // they return.
+                // 如果用户离开Launcher,那么我们应该返回时异步加载项。
                 mModel.startLoader(true, PagedView.INVALID_RESTORE_PAGE);
             } else {
-                // We only load the page synchronously if the user rotates (or triggers a
-                // configuration change) while launcher is in the foreground
+                LogUtils.d("mRestoring false---- startLoader");
+                // 如果用户旋转(或触发/ /配置更改),而Launcher是在前台界面,我们只同步加载页面
                 mModel.startLoader(true, mWorkspace.getRestorePage());
             }
         }
@@ -4130,6 +4129,7 @@ public class Launcher extends Activity
      * Implementation of the method from LauncherModel.Callbacks.
      */
     public void startBinding() {
+        LogUtils.d("startBinding");
         setWorkspaceLoading(true);
 
         // If we're starting binding all over again, clear any bind calls we'd postponed in

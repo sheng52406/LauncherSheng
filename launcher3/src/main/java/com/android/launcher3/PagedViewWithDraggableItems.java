@@ -71,8 +71,8 @@ public abstract class PagedViewWithDraggableItems extends PagedView
                 cancelDragging();
                 mIsDragEnabled = true;
                 break;
-            case MotionEvent.ACTION_MOVE:
-                if (mTouchState != TOUCH_STATE_SCROLLING && !mIsDragging && mIsDragEnabled) {
+            case MotionEvent.ACTION_MOVE://进入滑动状态
+                if (mTouchState != TOUCH_STATE_SCROLLING && !mIsDragging && mIsDragEnabled) { //根据是否进入滚动状态，判断是否需要拖曳按钮
                     determineDraggingStart(ev);
                 }
                 break;
